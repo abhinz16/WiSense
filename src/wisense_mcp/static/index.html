@@ -374,33 +374,159 @@
                     <h3>Analyze CSI Sample</h3>
 
                     <p>
-                        Select a human-readable WiMANS sample.
-                        WiSense loads the cached CSI tensor and true packet
-                        length, then executes the frozen three-seed ensemble.
+                        Run the trained ensemble on a WiMANS sample or upload
+                        a compatible CSI capture collected from another sensor.
                     </p>
                 </div>
 
             </div>
 
 
-            <div class="glass analyze-control">
+            <div class="glass analysis-source-panel">
 
-                <div class="field grow">
-
-                    <label for="analyzeSample">
-                        Sample
-                    </label>
-
-                    <select id="analyzeSample"></select>
-
+                <div class="source-switcher-heading">
+                    <div>
+                        <span class="source-switcher-label">Input source</span>
+                        <p>Choose where the CSI sample should come from.</p>
+                    </div>
                 </div>
 
-                <button
-                    id="analyzeButton"
-                    class="button primary analyze-button"
+                <div
+                    class="analysis-source-tabs"
+                    role="tablist"
+                    aria-label="CSI sample source"
                 >
-                    Run Neural Inference
-                </button>
+                    <button
+                        id="datasetSourceButton"
+                        class="analysis-source-tab active"
+                        type="button"
+                        data-analysis-source="dataset"
+                    >
+                        <span class="source-tab-icon" aria-hidden="true">▦</span>
+                        <span class="source-tab-copy">
+                            <strong>WiMANS Dataset</strong>
+                            <small>Analyze a sample already in the project</small>
+                        </span>
+                        <span class="source-tab-check" aria-hidden="true">✓</span>
+                    </button>
+
+                    <button
+                        id="uploadSourceButton"
+                        class="analysis-source-tab"
+                        type="button"
+                        data-analysis-source="upload"
+                    >
+                        <span class="source-tab-icon upload-icon" aria-hidden="true">⇧</span>
+                        <span class="source-tab-copy">
+                            <strong>New Sensor Sample</strong>
+                            <small>Upload a compatible CSI capture from your sensor</small>
+                        </span>
+                        <span class="source-tab-check" aria-hidden="true">✓</span>
+                    </button>
+                </div>
+
+                <div class="analysis-source-content">
+
+                    <div
+                        id="datasetAnalysisSource"
+                        class="analysis-source-body"
+                    >
+                        <div class="source-pane-heading">
+                            <div class="source-pane-icon" aria-hidden="true">▦</div>
+                            <div>
+                                <strong>Choose a dataset sample</strong>
+                                <p>Select one WiMANS sample and run the trained ensemble.</p>
+                            </div>
+                        </div>
+
+                        <div class="analyze-control embedded-control source-control-row">
+                            <div class="field grow">
+                                <label for="analyzeSample">WiMANS sample</label>
+                                <select id="analyzeSample"></select>
+                            </div>
+
+                            <button
+                                id="analyzeButton"
+                                class="button primary analyze-button source-run-button"
+                            >
+                                Run Neural Inference
+                            </button>
+                        </div>
+
+                        <div class="source-footnote">
+                            Uses the preprocessed sample and true packet length from the project cache.
+                        </div>
+                    </div>
+
+                    <div
+                        id="uploadAnalysisSource"
+                        class="analysis-source-body hidden"
+                    >
+                        <div class="source-pane-heading">
+                            <div class="source-pane-icon upload-icon" aria-hidden="true">⇧</div>
+                            <div>
+                                <strong>Upload a sensor capture</strong>
+                                <p>Use a CSI file collected outside the WiMANS dataset.</p>
+                            </div>
+                        </div>
+
+                        <label
+                            id="externalDropZone"
+                            class="upload-zone"
+                            for="externalSampleFile"
+                        >
+                            <input
+                                id="externalSampleFile"
+                                type="file"
+                                hidden
+                            >
+
+                            <span class="upload-zone-icon">⇧</span>
+
+                            <span class="upload-zone-copy">
+                                <strong>Drop your CSI file here</strong>
+                                <span>or click to browse from your computer</span>
+                            </span>
+
+                            <span class="upload-zone-action">Choose file</span>
+                        </label>
+
+                        <div class="upload-action-row">
+                            <div class="selected-file-wrap">
+                                <span class="selected-file-label">Selected file</span>
+                                <div
+                                    id="externalFileInfo"
+                                    class="upload-file-info"
+                                >
+                                    No file selected
+                                </div>
+                            </div>
+
+                            <button
+                                id="uploadAnalyzeButton"
+                                class="button primary analyze-button source-run-button"
+                                disabled
+                            >
+                                Run Neural Inference
+                            </button>
+                        </div>
+
+                        <div class="external-input-note">
+                            <div class="compatibility-item">
+                                <span class="compatibility-label">Expected input</span>
+                                <strong id="externalInputRequirement">
+                                    CSI data with the same channel ordering used during training.
+                                </strong>
+                            </div>
+
+                            <div class="compatibility-item">
+                                <span class="compatibility-label">File support</span>
+                                <strong id="externalInputFormats"></strong>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
 
             </div>
 
@@ -425,6 +551,13 @@
                     </div>
 
                     <div class="signal-stats">
+
+                        <div>
+                            <span>Source</span>
+                            <strong id="analysisSource">
+                                —
+                            </strong>
+                        </div>
 
                         <div>
                             <span>Inference</span>

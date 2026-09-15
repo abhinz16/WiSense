@@ -79,6 +79,12 @@ async def api_overview(request: Request) -> JSONResponse:
             "analysis": repository.get_error_analysis_summary(),
             "inference": inference_engine.get_status(),
             "sample_filters": sample_catalog.filters("test"),
+            "external_input": {
+                "formats": settings.get_list("server", "external_sample_formats"),
+                "max_upload_mb": settings.getfloat("server", "external_sample_max_mb"),
+                "num_channels": settings.getint("dataset", "num_channels"),
+                "target_length": settings.getint("preprocessing", "target_length"),
+            },
         }
     )
 
@@ -140,6 +146,55 @@ async def api_predict(request: Request) -> JSONResponse:
         prediction.pop("sample_id", None)
         return JSONResponse(prediction)
     except (ValueError, KeyError, FileNotFoundError) as error:
+        return json_error(str(error))
+
+
+async def api_predict_upload(request: Request) -> JSONResponse:
+    """Run inference on a compatible CSI sample uploaded from the browser."""
+
+    filename = request.query_params.get("filename", "uploaded_sample").strip()
+    suffix = Path(filename).suffix.lower()
+    allowed_formats = {
+        item.lower()
+        for item in settings.get_list("server", "external_sample_formats")
+    }
+    if suffix not in allowed_formats:
+        supported = ", ".join(sorted(allowed_formats))
+        return json_error(
+            f"Unsupported sample format '{suffix or 'unknown'}'. Supported formats: {supported}."
+        )
+
+    max_bytes = int(settings.getfloat("server", "external_sample_max_mb") * 1024 * 1024)
+    content_length = request.headers.get("content-length")
+    if content_length is not None:
+        try:
+            if int(content_length) > max_bytes:
+                return json_error("The uploaded sample is larger than the configured size limit.", 413)
+        except ValueError:
+            pass
+
+    payload = await request.body()
+    if not payload:
+        return json_error("The uploaded sample is empty.")
+    if len(payload) > max_bytes:
+        return json_error("The uploaded sample is larger than the configured size limit.", 413)
+
+    try:
+        top_k = int(
+            request.query_params.get(
+                "top_k",
+                settings.getint("server", "top_k_activities"),
+            )
+        )
+        async with inference_lock:
+            prediction = await asyncio.to_thread(
+                inference_engine.predict_uploaded_sample,
+                payload,
+                filename,
+                top_k,
+            )
+        return JSONResponse(prediction)
+    except (ValueError, KeyError, FileNotFoundError, RuntimeError) as error:
         return json_error(str(error))
 
 
@@ -338,6 +393,7 @@ app = Starlette(
         Route("/api/samples", api_samples),
         Route("/api/samples/{identifier}", api_sample),
         Route("/api/predict", api_predict, methods=["POST"]),
+        Route("/api/predict-upload", api_predict_upload, methods=["POST"]),
         Route("/api/signal", api_signal),
         Route("/api/analytics", api_analytics),
         Route("/api/model", api_model),

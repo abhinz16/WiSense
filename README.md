@@ -6,9 +6,9 @@
 
 <p align="center"><em>WiFi CSI to multi-user presence and activity recognition, with an interactive dashboard and MCP interface.</em></p>
 
-WiSense-MCP is a reproducible WiFi Channel State Information (CSI) sensing project for multi-user presence detection and activity recognition. The project uses the public WiMANS dataset, trains a temporal deep-learning model from CSI amplitude measurements, combines several independently trained models with a soft ensemble, and exposes the finished system through both a browser dashboard and a Model Context Protocol (MCP) server.
+WiSense-MCP is a reproducible WiFi Channel State Information (CSI) sensing project for multi-user presence detection and activity recognition. The project uses the public WiMANS dataset, trains a temporal deep-learning model from CSI amplitude measurements, combines several independently trained models with a soft ensemble, and exposes the finished system through both a browser dashboard and a Model Context Protocol (MCP) server. The dashboard can analyze samples already in WiMANS or run inference on a compatible CSI capture uploaded from another sensor.
 
-The repository is organized as a complete pipeline rather than a collection of isolated notebooks. A new user should be able to place the dataset in the configured directory, run the scripts in order, reproduce the preprocessing and training workflow, evaluate the final ensemble, and then start the dashboard and MCP endpoint without editing the Python source code.
+The repository is organized as a complete pipeline rather than a collection of isolated notebooks. A new user should be able to place the dataset in the configured directory, run the scripts in order, reproduce the preprocessing and training workflow, evaluate the final ensemble, and then start the dashboard and MCP endpoint without editing the Python source code. Once the model is available, a user can also upload a compatible CSI file through the browser and obtain a prediction without adding that sample to the project dataset.
 
 ## What the system does
 
@@ -19,7 +19,7 @@ Each WiMANS sample contains approximately three seconds of WiFi CSI. The model r
 
 The nine activity classes are `jump`, `lie_down`, `nothing`, `pick_up`, `rotation`, `sit_down`, `stand_up`, `walk`, and `wave`.
 
-The final model uses a temporal CNN followed by a packed bidirectional LSTM. Instead of reducing the entire sequence to a single recurrent state, it uses temporal-pyramid attention to retain information from the full sequence as well as its early, middle, and late portions. Three independently trained models are then combined by averaging their output probabilities.
+The final model uses a temporal CNN followed by a packed bidirectional LSTM. Instead of reducing the entire sequence to a single recurrent state, it uses temporal-pyramid attention to retain information from the full sequence as well as its early, middle, and late portions. Three independently trained models are then combined by averaging their output probabilities. The same inference path is used for cached WiMANS samples and compatible CSI files uploaded through the dashboard.
 
 ```text
 CSI amplitude: 270 channels x up to 3000 packets
@@ -148,8 +148,8 @@ Python 3.10 or newer is recommended. A CUDA-capable GPU is strongly recommended 
 Clone the repository and enter the project directory:
 
 ```bash
-git clone <your-repository-url>
-cd <your-repository-name>
+git clone https://github.com/abhinz16/WiSense.git
+cd WiSense
 ```
 
 Create and activate a virtual environment:
@@ -193,6 +193,8 @@ use_amp = true
 [server]
 host = 127.0.0.1
 port = 8000
+external_sample_max_mb = 50
+external_sample_formats = .npy, .npz, .csv, .txt
 ```
 
 The default split is 70% training, 10% validation, and 20% test. Global per-channel normalization statistics are computed from the training split only.
@@ -354,7 +356,91 @@ Health check:  http://127.0.0.1:8000/api/health
 MCP endpoint:  http://127.0.0.1:8000/mcp
 ```
 
-The dashboard provides sample browsing, live model inference, final-test analytics, error inspection, and CSI diagnostics. The neural-network ensemble is loaded lazily, so opening the dashboard does not immediately allocate the models on the GPU.
+The dashboard provides sample browsing, live model inference, final-test analytics, error inspection, and CSI diagnostics. In **Live Analyze**, the input source can be switched between a sample already in the WiMANS dataset and a compatible CSI file collected from another sensor. The neural-network ensemble is loaded lazily, so opening the dashboard does not immediately allocate the models on the GPU.
+
+## Running inference on a new sensor sample
+
+The **New Sensor Sample** option in the dashboard is intended for testing CSI collected outside the WiMANS dataset. The uploaded file is read directly for inference and is not added to the dataset or written into the project results. Ground-truth labels are not required.
+
+### Input requirements
+
+The trained network expects **270 CSI channels per packet**, matching the channel meaning and antenna/subcarrier ordering used during training. With the WiMANS representation, those 270 values correspond to the flattened `3 x 3 x 30` CSI dimensions for each packet.
+
+The uploader accepts the following file types by default:
+
+| Format | Expected contents |
+| --- | --- |
+| `.npy` | One NumPy array containing real amplitude values or complex CSI |
+| `.npz` | A NumPy archive containing a numeric CSI array |
+| `.csv` | UTF-8 numeric CSI data, comma separated |
+| `.txt` | UTF-8 numeric CSI data, whitespace separated |
+
+The allowed extensions and maximum upload size are controlled by `config.ini`:
+
+```ini
+[server]
+external_sample_max_mb = 50
+external_sample_formats = .npy, .npz, .csv, .txt
+```
+
+For `.npz` files, the loader first looks for arrays named `csi`, `amplitude`, `amp`, `data`, or `sample`. If none of those keys are present, it uses the first numeric array in the archive.
+
+### Supported array layouts
+
+The simplest and recommended layout is one row per packet:
+
+```text
+[packet_count, 270]
+```
+
+For example, a three-second capture with 3000 packets can be saved as:
+
+```python
+import numpy as np
+
+# csi_amplitude has shape (3000, 270)
+np.save("new_sensor_sample.npy", csi_amplitude)
+```
+
+The loader also accepts:
+
+```text
+[270, packet_count]
+[packet_count, 3, 3, 30]
+[3, 3, 30, packet_count]
+```
+
+More generally, a multidimensional array is accepted when exactly one axis can be interpreted as the packet axis and the product of all remaining dimensions is 270. A flat one-dimensional array is also accepted when its total length is an exact multiple of 270.
+
+Complex-valued CSI is converted to amplitude with `abs(CSI)` before normalization. Real-valued input is treated as CSI amplitude. Non-finite values are replaced using the training-set channel means. The sample is then normalized with the same training-only per-channel mean and standard deviation used by the model.
+
+The default model input length is 3000 packets. Shorter captures are zero-padded after normalization, while longer captures are truncated to the configured target length. The valid packet length is still passed to the recurrent model so padded timesteps are excluded from sequence processing.
+
+### Uploading a sample from the dashboard
+
+Start the application normally:
+
+```bash
+python scripts/run_server.py
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000/
+```
+
+Then open **Live Analyze**, select **New Sensor Sample**, and either drag the CSI file onto the upload area or click **Choose file**. After the file is selected, click **Run Neural Inference**.
+
+The result view shows the detected users, presence probabilities, predicted activity for each present user, top activity probabilities, inference latency, device information, the detected input layout, packet counts, and a compact CSI-energy preview. Because an uploaded sensor sample has no project annotation, the dashboard reports predictions only and does not calculate ground-truth correctness for that sample.
+
+### Sensor compatibility
+
+A file being accepted by the uploader does not guarantee that its predictions are calibrated. The model was trained on the WiMANS CSI representation, so a new sensor should preserve the same 270-channel interpretation and ordering as closely as possible. Changes in WiFi hardware, antenna layout, subcarrier selection, CSI extraction method, sampling behavior, environment, or signal scaling can introduce domain shift.
+
+If a sensor produces a different number of CSI channels, the current model cannot use that sample directly. If it produces 270 channels with a different physical meaning or ordering, the code may run but the resulting prediction should not be treated as reliable without validation, domain adaptation, or retraining.
+
+The browser upload workflow is currently separate from the MCP sample tools. MCP tools operate on samples already available through the project dataset/cache, while external sensor files are uploaded through the dashboard.
 
 ## Using the MCP server
 
@@ -472,9 +558,24 @@ Exact floating-point values can still vary slightly across PyTorch, CUDA, cuDNN,
 
 The system is a research implementation, not a safety-critical people-sensing product. Presence detection is substantially stronger than fine-grained activity recognition. In the reference test evaluation, highly dynamic activities such as jump, rotation, and wave remained among the more difficult classes.
 
-The current input is CSI amplitude only. Raw phase calibration, Doppler representations, additional antenna/subcarrier structure, domain adaptation, and evaluation on unseen environments or identities are reasonable directions for future work.
+The current model input is CSI amplitude only. Complex CSI uploaded through the dashboard is reduced to magnitude before inference. Raw phase calibration, Doppler representations, additional antenna/subcarrier structure, domain adaptation, and evaluation on unseen environments or identities are reasonable directions for future work.
+
+External sensor inference should be treated as a compatibility feature rather than a claim of hardware-independent generalization. The model expects the same 270-channel semantics and ordering used during training, and performance can degrade when the acquisition hardware or sensing domain differs from WiMANS.
 
 WiMANS does not provide session identifiers suitable for claiming a session-independent split in this implementation. The repository therefore describes its split as stratified by environment, WiFi band, and user count rather than making a session-independence claim.
+
+## Citation
+
+If you use the WiMANS dataset, cite the original dataset paper. The citation provided by the WiMANS authors is:
+
+```bibtex
+@article{huang2024wimans,
+  title={WiMANS: A Benchmark Dataset for WiFi-based Multi-user Activity Sensing},
+  author={Huang, Shuokang and Li, Kaihan and You, Di and Chen, Yichong and Lin, Arvin and Liu, Siying and Li, Xiaohui and McCann, Julie A},
+  journal={arXiv preprint arXiv:2402.09430},
+  year={2024}
+}
+```
 
 Please also cite this repository if you build on the model, preprocessing pipeline, or MCP application in your own work.
 
