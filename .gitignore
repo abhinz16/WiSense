@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Editors and OS files
+.vscode/
+.idea/
+.DS_Store
+
+# User-provided dataset and generated caches
+data/
+
+# Generated training/evaluation artifacts
+models/
+results/
+
+# Local Optuna or SQLite files if experimentation is added later
+*.db
+*.sqlite
+*.sqlite3

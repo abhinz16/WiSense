@@ -1,0 +1,17 @@
+{
+    "objective": "present_user_activity_macro_f1",
+    "parameters": {
+        "base_channels": 128,
+        "num_blocks": 4,
+        "kernel_size": 11,
+        "cnn_dropout": 0.1,
+        "lstm_hidden_size": 128,
+        "lstm_layers": 2,
+        "lstm_dropout": 0.0,
+        "head_dropout": 0.3,
+        "learning_rate": 0.00027551959649510803,
+        "weight_decay": 1.9090338932926942e-06,
+        "batch_size": 32,
+        "activity_loss_weight": 2.0
+    }
+}

@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>WiSense — Wireless Human Sensing Intelligence</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/app.css"
+    >
+</head>
+
+<body>
+
+<div class="ambient ambient-one"></div>
+<div class="ambient ambient-two"></div>
+
+<div id="app">
+
+    <!-- ==================================================
+         SIDEBAR
+    =================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-mark">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div>
+                <h1>WiSense</h1>
+                <p>Wireless Intelligence</p>
+            </div>
+
+        </div>
+
+
+        <nav class="nav">
+
+            <button
+                class="nav-item active"
+                data-page="overview"
+            >
+                <span class="nav-icon">◈</span>
+                Overview
+            </button>
+
+            <button
+                class="nav-item"
+                data-page="analyze"
+            >
+                <span class="nav-icon">⌁</span>
+                Live Analyze
+            </button>
+
+            <button
+                class="nav-item"
+                data-page="samples"
+            >
+                <span class="nav-icon">▦</span>
+                Sample Explorer
+            </button>
+
+            <button
+                class="nav-item"
+                data-page="analytics"
+            >
+                <span class="nav-icon">⌁</span>
+                Analytics
+            </button>
+
+            <button
+                class="nav-item"
+                data-page="diagnostics"
+            >
+                <span class="nav-icon">⌗</span>
+                Diagnostics
+            </button>
+
+            <button
+                class="nav-item"
+                data-page="model"
+            >
+                <span class="nav-icon">◇</span>
+                Model
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <div class="connection-panel">
+
+                <div
+                    id="connectionDot"
+                    class="status-dot status-waiting"
+                ></div>
+
+                <div>
+                    <div
+                        id="connectionText"
+                        class="connection-title"
+                    >
+                        Connecting…
+                    </div>
+
+                    <div
+                        id="connectionDetail"
+                        class="connection-subtitle"
+                    >
+                        WiSense service
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mcp-label">
+                MCP endpoint
+                <code>/mcp</code>
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- ==================================================
+         MAIN
+    =================================================== -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div>
+
+                <div class="eyebrow">
+                    AI-ACCESSIBLE RF SENSING
+                </div>
+
+                <h2 id="pageTitle">
+                    System Overview
+                </h2>
+
+            </div>
+
+
+            <div class="topbar-status">
+
+                <div class="status-chip">
+
+                    <span
+                        id="gpuDot"
+                        class="status-dot status-waiting"
+                    ></span>
+
+                    <span id="gpuText">
+                        Checking GPU
+                    </span>
+
+                </div>
+
+                <div class="model-chip">
+                    Temporal-Pyramid Ensemble
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- ==================================================
+             OVERVIEW
+        =================================================== -->
+
+        <section
+            id="page-overview"
+            class="page active"
+        >
+
+            <div class="hero glass">
+
+                <div class="hero-content">
+
+                    <div class="hero-kicker">
+                        WIRELESS HUMAN SENSING
+                    </div>
+
+                    <h3>
+                        Perceive human activity
+                        <span>through WiFi.</span>
+                    </h3>
+
+                    <p>
+                        Multi-user presence detection and
+                        activity recognition from WiFi CSI,
+                        powered by a length-aware CNN-BiLSTM,
+                        temporal-pyramid attention and a soft probability ensemble.
+                    </p>
+
+                    <div class="hero-actions">
+
+                        <button
+                            class="button primary"
+                            id="heroAnalyzeButton"
+                        >
+                            Analyze a CSI Sample
+                        </button>
+
+                        <button
+                            class="button secondary"
+                            data-nav-target="analytics"
+                        >
+                            Explore Performance
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="rf-orb">
+
+                    <div class="orb-ring ring-one"></div>
+                    <div class="orb-ring ring-two"></div>
+                    <div class="orb-ring ring-three"></div>
+
+                    <div class="orb-core">
+                        RF
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="metric-grid">
+
+                <div class="metric-card glass">
+                    <div class="metric-label">
+                        Presence F1
+                    </div>
+                    <div
+                        id="metricPresence"
+                        class="metric-value"
+                    >
+                        —
+                    </div>
+                    <div class="metric-sub">
+                        User detection
+                    </div>
+                </div>
+
+                <div class="metric-card glass">
+                    <div class="metric-label">
+                        Activity F1
+                    </div>
+                    <div
+                        id="metricActivity"
+                        class="metric-value"
+                    >
+                        —
+                    </div>
+                    <div class="metric-sub">
+                        Present users
+                    </div>
+                </div>
+
+                <div class="metric-card glass">
+                    <div class="metric-label">
+                        Structured F1
+                    </div>
+                    <div
+                        id="metricStructured"
+                        class="metric-value"
+                    >
+                        —
+                    </div>
+                    <div class="metric-sub">
+                        Presence + activity
+                    </div>
+                </div>
+
+                <div class="metric-card glass">
+                    <div class="metric-label">
+                        Dataset
+                    </div>
+                    <div
+                        id="metricSamples"
+                        class="metric-value"
+                    >
+                        —
+                    </div>
+                    <div class="metric-sub">
+                        WiMANS samples
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="overview-grid">
+
+                <div class="glass panel">
+
+                    <div class="panel-header">
+                        <div>
+                            <div class="eyebrow">
+                                DATASET
+                            </div>
+                            <h4>WiMANS</h4>
+                        </div>
+                    </div>
+
+                    <div
+                        id="datasetSummary"
+                        class="detail-grid"
+                    ></div>
+
+                </div>
+
+
+                <div class="glass panel">
+
+                    <div class="panel-header">
+                        <div>
+                            <div class="eyebrow">
+                                MODEL HEALTH
+                            </div>
+                            <h4>Inference Engine</h4>
+                        </div>
+                    </div>
+
+                    <div
+                        id="systemSummary"
+                        class="detail-grid"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             LIVE ANALYZE
+        =================================================== -->
+
+        <section
+            id="page-analyze"
+            class="page"
+        >
+
+            <div class="section-intro">
+
+                <div>
+                    <div class="eyebrow">
+                        LIVE ENSEMBLE INFERENCE
+                    </div>
+
+                    <h3>Analyze CSI Sample</h3>
+
+                    <p>
+                        Select a human-readable WiMANS sample.
+                        WiSense loads the cached CSI tensor and true packet
+                        length, then executes the frozen three-seed ensemble.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="glass analyze-control">
+
+                <div class="field grow">
+
+                    <label for="analyzeSample">
+                        Sample
+                    </label>
+
+                    <select id="analyzeSample"></select>
+
+                </div>
+
+                <button
+                    id="analyzeButton"
+                    class="button primary analyze-button"
+                >
+                    Run Neural Inference
+                </button>
+
+            </div>
+
+
+            <div
+                id="analysisHero"
+                class="glass signal-panel hidden"
+            >
+
+                <div class="signal-header">
+
+                    <div>
+
+                        <div class="eyebrow">
+                            CSI TEMPORAL ENERGY
+                        </div>
+
+                        <h4 id="analysisSampleName">
+                            —
+                        </h4>
+
+                    </div>
+
+                    <div class="signal-stats">
+
+                        <div>
+                            <span>Inference</span>
+                            <strong id="analysisLatency">
+                                —
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Device</span>
+                            <strong id="analysisDevice">
+                                —
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <canvas
+                    id="signalCanvas"
+                    height="240"
+                ></canvas>
+
+            </div>
+
+
+            <div
+                id="userResults"
+                class="user-grid"
+            ></div>
+
+        </section>
+
+
+        <!-- ==================================================
+             SAMPLE EXPLORER
+        =================================================== -->
+
+        <section
+            id="page-samples"
+            class="page"
+        >
+
+            <div class="section-intro">
+
+                <div>
+                    <div class="eyebrow">
+                        HUMANIZED DATASET NAVIGATION
+                    </div>
+                    <h3>Sample Explorer</h3>
+                </div>
+
+            </div>
+
+
+            <div class="glass filters">
+
+                <div class="field">
+                    <label>Environment</label>
+                    <select id="filterEnvironment">
+                        <option value="">All</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>WiFi Band</label>
+                    <select id="filterBand">
+                        <option value="">All</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>People</label>
+                    <select id="filterUsers">
+                        <option value="">All</option>
+                    </select>
+                </div>
+
+                <div class="field grow">
+                    <label>Search</label>
+                    <input
+                        id="filterSearch"
+                        type="text"
+                        placeholder="Classroom, 5 GHz, Sample 0042..."
+                    >
+                </div>
+
+                <button
+                    id="applyFilters"
+                    class="button secondary"
+                >
+                    Apply
+                </button>
+
+            </div>
+
+
+            <div
+                id="sampleCount"
+                class="result-count"
+            ></div>
+
+
+            <div
+                id="sampleGrid"
+                class="sample-grid"
+            ></div>
+
+        </section>
+
+
+        <!-- ==================================================
+             ANALYTICS
+        =================================================== -->
+
+        <section
+            id="page-analytics"
+            class="page"
+        >
+
+            <div class="section-intro">
+
+                <div>
+                    <div class="eyebrow">
+                        FINAL FROZEN TEST ANALYSIS
+                    </div>
+
+                    <h3>Model Analytics</h3>
+
+                    <p>
+                        The following results are derived from
+                        the locked final test evaluation.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="analytics-grid">
+
+                <div class="glass panel">
+                    <h4>Activity Recognition</h4>
+                    <div id="activityBars"></div>
+                </div>
+
+                <div class="glass panel">
+                    <h4>WiFi Frequency</h4>
+                    <div id="bandBars"></div>
+                </div>
+
+                <div class="glass panel">
+                    <h4>Environment</h4>
+                    <div id="environmentBars"></div>
+                </div>
+
+                <div class="glass panel">
+                    <h4>Simultaneous People</h4>
+                    <div id="userCountBars"></div>
+                </div>
+
+            </div>
+
+
+            <div class="glass panel confusion-panel">
+
+                <div class="panel-header">
+                    <div>
+                        <div class="eyebrow">
+                            ERROR SIGNATURE
+                        </div>
+                        <h4>Common Recognition Errors</h4>
+                    </div>
+                </div>
+
+                <div id="confusionList"></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             DIAGNOSTICS
+        =================================================== -->
+
+        <section
+            id="page-diagnostics"
+            class="page"
+        >
+
+            <div class="section-intro">
+
+                <div>
+
+                    <div class="eyebrow">
+                        MODEL EXPLAINABILITY + CSI DIAGNOSTICS
+                    </div>
+
+                    <h3>Sensing Diagnostics</h3>
+
+                    <p>
+                        Inspect CSI data integrity, compare live
+                        predictions against ground truth, and explore
+                        difficult or incorrectly classified test samples.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="glass analyze-control">
+
+                <div class="field grow">
+
+                    <label for="diagnosticSample">
+                        Sample
+                    </label>
+
+                    <select id="diagnosticSample"></select>
+
+                </div>
+
+                <button
+                    id="diagnosticButton"
+                    class="button primary"
+                >
+                    Diagnose Sample
+                </button>
+
+            </div>
+
+
+            <div
+                id="diagnosticSummary"
+                class="diagnostic-summary hidden"
+            >
+
+                <div class="diagnostic-metrics">
+
+                    <div class="metric-card glass">
+                        <div class="metric-label">
+                            Packet Coverage
+                        </div>
+                        <div
+                            id="diagCoverage"
+                            class="metric-value"
+                        >
+                            —
+                        </div>
+                        <div class="metric-sub">
+                            Observed WiFi packets
+                        </div>
+                    </div>
+
+                    <div class="metric-card glass">
+                        <div class="metric-label">
+                            Data Integrity
+                        </div>
+                        <div
+                            id="diagIntegrity"
+                            class="metric-value diagnostic-text"
+                        >
+                            —
+                        </div>
+                        <div class="metric-sub">
+                            Cached-input integrity
+                        </div>
+                    </div>
+
+                    <div class="metric-card glass">
+                        <div class="metric-label">
+                            Temporal Variation
+                        </div>
+                        <div
+                            id="diagTemporal"
+                            class="metric-value"
+                        >
+                            —
+                        </div>
+                        <div class="metric-sub">
+                            RMS temporal change
+                        </div>
+                    </div>
+
+                    <div class="metric-card glass">
+                        <div class="metric-label">
+                            Live Inference
+                        </div>
+                        <div
+                            id="diagLatency"
+                            class="metric-value"
+                        >
+                            —
+                        </div>
+                        <div class="metric-sub">
+                            ensemble inference latency
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="glass panel diagnostic-note-panel">
+                    <div class="eyebrow">INTERPRETATION</div>
+                    <p id="diagnosticNote">
+                        CSI diagnostics are computed from the cached,
+                        globally standardized amplitude tensor. They are
+                        not RF SNR measurements.
+                    </p>
+                </div>
+
+
+                <div class="glass panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <div class="eyebrow">
+                                USER-LEVEL DIAGNOSTICS
+                            </div>
+                            <h4>Prediction vs Ground Truth</h4>
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="diagnosticUsers"
+                        class="diagnostic-user-grid"
+                    ></div>
+
+                </div>
+
+            </div>
+
+
+            <div class="section-intro diagnostic-explorer-title">
+
+                <div>
+                    <div class="eyebrow">
+                        FROZEN TEST SET
+                    </div>
+                    <h3>Error & Difficulty Explorer</h3>
+                    <p>
+                        Search frozen predictions for failure modes or
+                        rank samples by a retrospective uncertainty heuristic.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="glass filters">
+
+                <div class="field">
+                    <label>Error Type</label>
+                    <select id="diagnosticErrorType">
+                        <option value="any">
+                            Any structured error
+                        </option>
+                        <option value="activity">
+                            Activity error
+                        </option>
+                        <option value="false_presence">
+                            False presence
+                        </option>
+                        <option value="missed_presence">
+                            Missed person
+                        </option>
+                        <option value="structured">
+                            Structured error
+                        </option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Environment</label>
+                    <select id="diagnosticEnvironment">
+                        <option value="">All</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>WiFi Band</label>
+                    <select id="diagnosticBand">
+                        <option value="">All</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>People</label>
+                    <select id="diagnosticUsersFilter">
+                        <option value="">All</option>
+                    </select>
+                </div>
+
+                <button
+                    id="findErrorsButton"
+                    class="button secondary"
+                >
+                    Find Errors
+                </button>
+
+                <button
+                    id="findDifficultButton"
+                    class="button secondary"
+                >
+                    Rank Difficult Samples
+                </button>
+
+            </div>
+
+
+            <div
+                id="diagnosticResultCount"
+                class="result-count"
+            ></div>
+
+
+            <div
+                id="diagnosticErrorGrid"
+                class="sample-grid"
+            ></div>
+
+        </section>
+
+
+        <!-- ==================================================
+             MODEL
+        =================================================== -->
+
+        <section
+            id="page-model"
+            class="page"
+        >
+
+            <div class="section-intro">
+
+                <div>
+                    <div class="eyebrow">
+                        PRODUCTION ARCHITECTURE
+                    </div>
+
+                    <h3>Temporal-Pyramid WiFi Sensing Ensemble</h3>
+
+                    <p>
+                        Length-aware multi-task RF sensing network that preserves
+                        coarse temporal order with global, early, middle, and late
+                        attention before equal-weight three-seed ensembling.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="architecture">
+
+                <div class="architecture-node glass">
+                    <span>INPUT</span>
+                    <strong>Configured CSI Tensor</strong>
+                    <small>Standardized amplitude + true packet length</small>
+                </div>
+
+                <div class="architecture-arrow">→</div>
+
+                <div class="architecture-node glass">
+                    <span>SPATIOTEMPORAL ENCODER</span>
+                    <strong>CNN + Packed BiLSTM</strong>
+                    <small>Configuration loaded from the trained checkpoint</small>
+                </div>
+
+                <div class="architecture-arrow">→</div>
+
+                <div class="architecture-node glass">
+                    <span>TEMPORAL PYRAMID</span>
+                    <strong>Global + Segment Attention</strong>
+                    <small>Coarse temporal order is preserved</small>
+                </div>
+
+                <div class="architecture-arrow">→</div>
+
+                <div class="architecture-node glass">
+                    <span>ENSEMBLE OUTPUT</span>
+                    <strong>Seed Ensemble</strong>
+                    <small>Equal-weight soft probability average</small>
+                </div>
+
+            </div>
+
+
+            <div
+                id="modelDetails"
+                class="glass panel"
+            ></div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<div
+    id="toast"
+    class="toast"
+></div>
+
+
+<script src="/static/app.js"></script>
+
+</body>
+</html>
