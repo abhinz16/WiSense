@@ -566,17 +566,6 @@ WiMANS does not provide session identifiers suitable for claiming a session-inde
 
 ## Citation
 
-If you use the WiMANS dataset, cite the original dataset paper. The citation provided by the WiMANS authors is:
-
-```bibtex
-@article{huang2024wimans,
-  title={WiMANS: A Benchmark Dataset for WiFi-based Multi-user Activity Sensing},
-  author={Huang, Shuokang and Li, Kaihan and You, Di and Chen, Yichong and Lin, Arvin and Liu, Siying and Li, Xiaohui and McCann, Julie A},
-  journal={arXiv preprint arXiv:2402.09430},
-  year={2024}
-}
-```
-
 Please also cite this repository if you build on the model, preprocessing pipeline, or MCP application in your own work.
 
 ## Questions and contributions
